@@ -9,6 +9,8 @@
    
     #참고자료 코드 변경 부분
     elif event.key == pygame.K_LCTRL -> elif event.key == pygame.K_LEFT
+    
+    largeText = pygame.font.Font('freesansbold.ttf',115) -> largeText = pygame.font.SysFont("notosanscjkkr",115)
  
  
 <h5> 참고자료 : https://blog.naver.com/PostView.nhn?blogId=samsjang&logNo=220706335386&parentCategoryNo=&categoryNo=80&viewDate=&isShowPopularPosts=true&from=search
