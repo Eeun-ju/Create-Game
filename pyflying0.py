@@ -1,8 +1,11 @@
+
 import pygame
 import random
 from time import sleep
 
 WHITE = (255,255,255) # 흰색 표현 값 (R,G,B)
+RED = (255,0,0) # 빨간색 표현 값
+
 pad_w = 1024 #게임판 폭 전역변수
 pad_h = 512 #게임판 높이 전역변수
 background_width = 1024
@@ -13,6 +16,32 @@ aircraft_height = 55
 bat_width = 110
 bat_height = 67
 
+
+fireball1_width = 140
+fireball1_height = 60
+fireball2_width = 86
+fireball2_height = 60
+
+def textObj(text,font): # 게임화면에 표시될 텍스트 모양과 영역
+    textSurface = font.render(text,True,RED)
+    return textSurface, textSurface.get_rect()
+
+def dispMessage(text):
+    global gamepad
+
+    #largeText = pygame.font.Font('freesansbold.ttf',115)
+    largeText = pygame.font.SysFont("notosanscjkkr",115)
+    TextSurt, TextRect = textObj(text,largeText)
+    TextRect.center = ((pad_w/2),(pad_h/2))
+    gamepad.blit(TextSurt,TextRect) # 빨간색으로 crash 출력
+    pygame.display.update()
+    sleep(2) # 2초 쉬고 다시 게임 시작
+    runGame()
+
+def crash():
+    global gamepad
+    dispMessage('Crashed!')
+
 def drawobject(obj,x,y): # 게임판에 그려지는 객체
     global gamepad
     gamepad.blit(obj,(x,y))
@@ -22,8 +51,8 @@ def runGame(): #실제 구동 함수
     global gamepad, clock, aircraft, background1,background2
     global bat, fires, bullet, boom
 
-    isShotBat = False
-    boom_count = 0
+    isShotBat = False # 총알이 박쥐를 명중했는지 안했는지 판단하기 위한 플래그
+    boom_count = 0 # 폭발 이미지가 화면에 표시되는 시간을 위한 변수
 
     bullet_xy = []
     
@@ -94,7 +123,7 @@ def runGame(): #실제 구동 함수
             bat_y = random.randrange(0,pad_h)
 
         # Fire position
-        if fire == None: # 아무런 방해물이 없는 것
+        if fire[1] == None: # 아무런 방해물이 없는 것
             fire_x -= 30
         else: # 방해물 있을 때 15픽셀씩 날아오게 하
             fire_x -= 15
@@ -113,7 +142,7 @@ def runGame(): #실제 구동 함수
                 
                 if bxy[0] < bat_x:
                     if bxy[1] > bat_y and bxy[1] < bat_y + bat_height:
-                        bullet_xy.remove(bxy)
+                        bullet_xy.remove(bxy) # 화면에서 총알 제거하기 위해
                         isShotBat = True
                         
                 if bxy[0] >= pad_w:
@@ -122,15 +151,28 @@ def runGame(): #실제 구동 함수
                     except:
                         pass
                     
-            
+        if x+aircraft_width > bat_x: #비행기가 박쥐와 충돌 했는지
+            if (y >bat_y and y < bat_y+bat_height) or (y+aircraft_height > bat_y and y+aircraft_height < bat_y+bat_height):
+                crash()
+        # 비행기와 불덩이가 충돌했는지 체크
+        if fire[1] != None:
+            if fire[0] == 0: # 첫번째 불덩이라면
+                fireball_width = fireball1_width
+                fireball_height = fireball1_height
+            elif fire[0] == 1: # 두번째 불덩이라
+                fireball_width = fireball2_width
+                fireball_height = fireball2_height
+            if x+aircraft_width > fire_x:
+                if(y+aircraft_height > fire_y and y+aircraft_height < fire_y+ fireball_height):
+                    crash()
                     
         drawobject(aircraft,x,y)
 
-        if len(bullet_xy)!=0:
+        if len(bullet_xy)!=0: 
             for bx,by in bullet_xy:
                 drawobject(bullet,bx,by)
 
-        if not isShotBat:
+        if not isShotBat: #총알이 박쥐에 명중하지 않았다면 박쥐를 계속 그려줌
             drawobject(bat,bat_x,bat_y)
         else:
             drawobject(boom,bat_x,bat_y)
@@ -141,8 +183,8 @@ def runGame(): #실제 구동 함수
                 bat_y = random.randrange(0,pad_h-bat_height)
                 isShotBat= False
         
-        if fire != None:
-            drawobject(fire,fire_x,fire_y)
+        if fire[1] != None:
+            drawobject(fire[1],fire_x,fire_y)
         
         
         pygame.display.update()
@@ -164,13 +206,13 @@ def initGame(): #초기화 함수
     background1 = pygame.image.load('C:/Users/user/Desktop/image/background.png')
     background2 = background1.copy() # 복사본 할당
     bat = pygame.image.load('C:/Users/user/Desktop/image/bat.png')
-    fires.append(pygame.image.load('C:/Users/user/Desktop/image/fireball.png'))
-    fires.append(pygame.image.load('C:/Users/user/Desktop/image/fireball2.png'))
+    fires.append((0,pygame.image.load('C:/Users/user/Desktop/image/fireball.png'))) #리스트 변수 fires를 (숫자, 이미지) 변경
+    fires.append((1,pygame.image.load('C:/Users/user/Desktop/image/fireball2.png')))
 
-    boom = pygame.image.load('C:/Users/user/Desktop/image/boom.png')
+    boom = pygame.image.load('C:/Users/user/Desktop/image/boom.png') # 박쥐가 터지는 장면
 
     for i in range(3):
-        fires.append(None)
+        fires.append((i+2,None))
     bullet = pygame.image.load('C:/Users/user/Desktop/image/bullet.png')
     
     clock = pygame.time.Clock() #초당 프레임 설정
