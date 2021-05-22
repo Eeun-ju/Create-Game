@@ -22,6 +22,17 @@ fireball1_height = 60
 fireball2_width = 86
 fireball2_height = 60
 
+def drawScore(count):
+    global gamepad
+
+    font = pygame.font.SysFont(None,25)
+    text = font.render('Bat Passed: '+ str(count),True,WHITE)
+    gamepad.blit(text,(0,0))
+
+def gameOver(): #박쥐를 3마리 놓치면 호출되는 함수
+    global gamepad
+    dispMessage('Game Over')
+
 def textObj(text,font): # 게임화면에 표시될 텍스트 모양과 영역
     textSurface = font.render(text,True,RED)
     return textSurface, textSurface.get_rect()
@@ -54,6 +65,8 @@ def runGame(): #실제 구동 함수
     isShotBat = False # 총알이 박쥐를 명중했는지 안했는지 판단하기 위한 플래그
     boom_count = 0 # 폭발 이미지가 화면에 표시되는 시간을 위한 변수
 
+    bat_passed = 0
+    
     bullet_xy = []
     
     x = pad_w * 0.05
@@ -108,6 +121,13 @@ def runGame(): #실제 구동 함수
 
         drawobject(background1,background1_x,0)
         drawobject(background2, background2_x,0)
+
+        drawScore(bat_passed)
+
+        # 박쥐가 3번 이상 넘어가면 게임오버
+        if bat_passed > 2:
+            gameOver()
+            
         
         y += y_change #키보드 입력에 따라 비행기의 y좌표 변경
         if y < 0:
@@ -119,6 +139,7 @@ def runGame(): #실제 구동 함수
 
         bat_x -= 7 # 비행기 쪽으로 7 픽셀씩 날아오게 
         if bat_x <=0: # 왼쪽 끝까지 날아가면 다시 위치 잡기
+            bat_passed += 1 #박쥐가 화면 왼쪽에 도달하면 1 증
             bat_x = pad_w
             bat_y = random.randrange(0,pad_h)
 
